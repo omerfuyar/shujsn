@@ -1,1 +1,11 @@
-ignore.*
+.vscode
+*.exe
+*.old
+ignore*
+*.pdb
+build/
+*.o
+*.obj
+*.shu
+*.out
+*.log

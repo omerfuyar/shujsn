@@ -1,16 +1,24 @@
 #pragma once
 
-#pragma region Shucio Macros
+#ifndef SHU_HEADER
+#ifdef SHU
+#include SHU
+#else
+#include "shu.h"
+#endif
+#endif
 
-#pragma endregion Shucio Macros
+#pragma region Macros
 
-#pragma region Shucio Declarations
+#pragma endregion Macros
 
-#pragma endregion Shucio Declarations
+#pragma region Declarations
 
-#pragma region Shucio Definitions
+#pragma endregion Declarations
 
-#ifdef SHUJSN_IMPLEMENTATION
-#endif // SHUJSN_IMPLEMENTATION
+#pragma region Definitions
 
-#pragma endregion Shucio Definitions
+#ifdef SHU_IMPLEMENTATION
+#endif // SHU_IMPLEMENTATION
+
+#pragma endregion Definitions
