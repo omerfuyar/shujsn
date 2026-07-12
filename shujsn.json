@@ -1,0 +1,79 @@
+{
+  "myString": "test string",
+  "escapedString": "line1\nline2\ttabbed \"quoted\" \\backslash\\ and caf\u00e9",
+  "emptyString": "",
+  "floating": 1.5,
+  "negativeFloating": -3.14159,
+  "num": 31,
+  "negativeNum": -42,
+  "largeNum": 9007199254740991,
+  "zero": 0,
+  "is_active": true,
+  "is_disabled": false,
+  "nothing": null,
+  "arrayOfStrings": [
+    "objects",
+    "arrays",
+    "booleans"
+  ],
+  "arrayOfNumbers": [
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "arrayOfFloats": [
+    1.1,
+    2.2,
+    3.3
+  ],
+  "arrayOfBooleans": [
+    true,
+    false,
+    true
+  ],
+  "mixedArray": [
+    1,
+    "two",
+    true,
+    null,
+    3.5
+  ],
+  "arrayOfObjects": [
+    {
+      "id": 1,
+      "name": "first"
+    },
+    {
+      "id": 2,
+      "name": "second"
+    }
+  ],
+  "arrayOfArrays": [
+    [
+      1,
+      2,
+      3
+    ],
+    [
+      4,
+      5,
+      6
+    ]
+  ],
+  "emptyArray": [],
+  "emptyObject": {},
+  "nested": {
+    "module": "core-01",
+    "metadata": null,
+    "deeplyNested": {
+      "level": 3,
+      "values": [
+        1,
+        2,
+        3
+      ]
+    }
+  }
+}

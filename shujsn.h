@@ -8,6 +8,13 @@
 #endif
 #endif
 
+#define json(...)
+#define jsonString(...)
+#define jsonArray(...)
+#define jsonI64(...)
+#define jsonF64(...)
+#define jsonBool(...)
+
 #pragma region Macros
 
 #pragma endregion Macros
