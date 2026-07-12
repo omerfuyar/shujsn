@@ -34,11 +34,11 @@
     true
   ],
   "mixedArray": [
-    1,
+    -1,
     "two",
     true,
     null,
-    3.5
+    3.14
   ],
   "arrayOfObjects": [
     {

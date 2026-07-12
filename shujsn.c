@@ -3,17 +3,30 @@
 
 int main(int argc, char **argv)
 {
-    json("ignore.json", )
+    json("shujsn.json", SHU_LogError(SHUResult_ErrFile, "failed to parse file 'shujsn.json'");)
     {
+        jsonObject(NULL, root);
+
+        jsonString("foo", bar, SHU_LogWarning("This would panic otherwise."););
         jsonString("myString", myString);
-        jsonF64("floating", testDouble);
-        jsonI64("negativeNum", testInt);
-        jsonBool("is_active", testBool);
-        jsonArray("arrayOfNumbers", );
+        jsonDecimal("floating", testDouble);
+        jsonInteger("negativeNum", testInt);
+        jsonBoolean("is_active", testBool);
+        jsonArrayStatic("arrayOfNumbers", I64, myArr);
+        jsonArrayDynamic("mixedArray", arrElement) // iterates over elements
+        {
+            switch (arrElement->type)
+            {
+            case:
+                break;
+            default:
+                break;
+            }
+        }
 
         json("nested")
         {
-            primitive("metadata", char *, metadata);
+            jsonObject("metadata", metadata);
         }
     }
 }
