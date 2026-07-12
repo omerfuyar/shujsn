@@ -28,7 +28,7 @@ int main(int argc, char **argv)
 
         SHUSliceView myArr = jsonArrayStatic("arrayOfNumbers", i64);
 
-        jsonArrayDynamic("mixedArray", arrElementType) // iterates over elements
+        jsonArrayDynamic("mixedArray") // iterates over elements
         {
             switch (arrElementType)
             {

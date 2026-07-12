@@ -35,9 +35,6 @@
         }                                                                             \
     }
 
-#define json(...)
-#define jsonArrayDynamic(...)
-
 #pragma endregion Macros
 
 #pragma region Declarations
@@ -53,11 +50,30 @@ typedef enum SHUJsonType
     SHUJsonType_ArrayDynamic,
 } SHUJsonType;
 
-typedef struct SHUJson
+typedef struct SHUJsonArrayStatic
 {
+    SHUSliceView data;
+    const usz typeSize;
+} SHUJsonArrayStatic;
+
+typedef struct SHUJsonArrayDynamic
+{
+
+} SHUJsonArrayDynamic;
+
+typedef union SHUJson
+{
+    SHUJson *object;
+    SHUSlice string;
+    SHUC_JSON_INTEGER_TYPE integer;
+    SHUC_JSON_DECIMAL_TYPE decimal;
+    SHUC_JSON_BOOLEAN_TYPE boolean;
+    SHUJsonArrayStatic staticArray;
 } SHUJson;
 
 SHUResult SHU_JsonGetLastResult(void);
+
+#define json(...)
 
 const SHUJson *SHU_JsonObject(const char *key);
 
@@ -89,11 +105,13 @@ SHUC_JSON_BOOLEAN_TYPE SHU_JsonBoolean(const char *key);
     SHU_JsonBoolean(key);     \
     SHUM_JSON_CHECK(key, __VA_ARGS__)
 
-SHUSliceView SHU_JsonArrayStatic(const char *key, usz typeSize);
+SHUJsonArrayStatic SHU_JsonArrayStatic(const char *key);
 
-#define jsonArrayStatic(key, type, ...)     \
-    SHU_JsonArrayStatic(key, sizeof(type)); \
+#define jsonArrayStatic(key, ...) \
+    SHU_JsonArrayStatic(key);     \
     SHUM_JSON_CHECK(key, __VA_ARGS__)
+
+#define jsonArrayDynamic(...)
 
 #pragma endregion Declarations
 
@@ -101,8 +119,15 @@ SHUSliceView SHU_JsonArrayStatic(const char *key, usz typeSize);
 
 #ifdef SHU_IMPLEMENTATION
 
+static struct
+{
+    SHUResult lastResult;
+    SHUJson *objects;
+} SHUJSN = {0};
+
 SHUResult SHU_JsonGetLastResult(void)
 {
+    return SHUJSN.lastResult;
 }
 
 const SHUJson *SHU_JsonObject(const char *key)
@@ -125,7 +150,7 @@ SHUC_JSON_BOOLEAN_TYPE SHU_JsonBoolean(const char *key)
 {
 }
 
-SHUSliceView SHU_JsonArrayStatic(const char *key, usz typeSize)
+SHUJsonArrayStatic SHU_JsonArrayStatic(const char *key)
 {
 }
 
