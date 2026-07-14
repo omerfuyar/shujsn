@@ -195,6 +195,39 @@ static struct
 
 static SHUJsonType SHUI_JsonGetTypeOfValue(SHUSliceView valueString)
 {
+    for (usz i = 0; i < valueString.size; i++)
+    {
+        char character = *(char *)(valueString.data + i);
+        switch (character)
+        {
+        case '\"':
+            break;
+        case '.':
+            break;
+        default:
+            break;
+        }
+    }
+
+    if (strncmp((const char *)valueString.data, "true", valueString.size) == 0)
+    {
+        goto boolean;
+    }
+
+    goto final;
+
+    // validation
+string:
+integer:
+decimal:
+boolean:
+array:
+arrayStatic:
+arrayDynamic:
+null:
+
+final:
+    SHUJSN.lastResult = SHUResult_Ok;
 }
 
 #pragma endregion Internals
@@ -220,36 +253,44 @@ const SHUJson *SHU_JsonObject(const char *key)
 
     // todo parse with helper functions
     // todo close root object
+
+    SHUJSN.lastResult = SHUResult_Ok;
 }
 
 SHUSliceView SHU_JsonString(const char *key)
 {
     SHU_CheckPanicNullPointer(key);
+    SHUJSN.lastResult = SHUResult_Ok;
 }
 
 SHUC_JSON_INTEGER_TYPE SHU_JsonInteger(const char *key)
 {
     SHU_CheckPanicNullPointer(key);
+    SHUJSN.lastResult = SHUResult_Ok;
 }
 
 SHUC_JSON_DECIMAL_TYPE SHU_JsonDecimal(const char *key)
 {
     SHU_CheckPanicNullPointer(key);
+    SHUJSN.lastResult = SHUResult_Ok;
 }
 
 SHUC_JSON_BOOLEAN_TYPE SHU_JsonBoolean(const char *key)
 {
     SHU_CheckPanicNullPointer(key);
+    SHUJSN.lastResult = SHUResult_Ok;
 }
 
 SHUJsonArrayStatic SHU_JsonArrayStatic(const char *key)
 {
     SHU_CheckPanicNullPointer(key);
+    SHUJSN.lastResult = SHUResult_Ok;
 }
 
 SHUJsonArrayDynamic SHU_JsonArrayDynamic(const char *key)
 {
     SHU_CheckPanicNullPointer(key);
+    SHUJSN.lastResult = SHUResult_Ok;
 }
 
 #endif // SHU_IMPLEMENTATION

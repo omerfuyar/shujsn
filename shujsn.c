@@ -24,7 +24,7 @@ int main(int argc, char **argv)
         testF = jsonDecimal("floating");
         testI = jsonInteger("negativeNum");
 
-        SHUC_JSON_BOOLEAN_TYPE testBool = jsonBoolean("is_active");
+        SHUC_JSON_BOOLEAN_TYPE /*bool*/ testBool = jsonBoolean("is_active");
 
         SHUJsonArrayStatic myArr = jsonArrayStatic("arrayOfNumbers");
         SHUJsonArrayDynamic myMixArr = jsonArrayDynamic("mixedArray");
