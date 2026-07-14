@@ -87,46 +87,90 @@ typedef struct SHUJson
     } data;
 } SHUJson;
 
+/// @brief Gets the result of the last executed function.
+/// @return Result of the last executed shujsn function.
 SHUResult SHU_JsonGetLastResult(void);
 
+/// !!! DO NOT USE THIS FUNCTION ALONE, USE `json` MACRO INSTEAD !!!
 const SHUJson *SHU_JsonObject(const char *key);
 
+/// @brief
+/// @param key Key of the Json object member. Left side of `:`.
+/// @param onFail Code section to call if this operation fails. Do not forget semicolons. (eg. SHU_LogError(SHU_JsonGetLastResult(), "failed to parse file 'shujsn.json'");)
+/// @return
+/// @note You can retrieve the error code by calling function `SHU_JsonGetLastResult`.
 #define json(key, ...)   \
     SHU_JsonObject(key); \
     SHUM_JSON_CHECK(key, ##__VA_ARGS__)
 
+/// !!! DO NOT USE THIS FUNCTION ALONE, USE `jsonString` MACRO INSTEAD !!!
 SHUSliceView SHU_JsonString(const char *key);
 
+/// @brief
+/// @param key Key of the Json object member. Left side of `:`.
+/// @param onFail Code section to call if this operation fails. Do not forget semicolons. (eg. SHU_LogError(SHU_JsonGetLastResult(), "failed to parse file 'shujsn.json'");)
+/// @return
+/// @note You can retrieve the error code by calling function `SHU_JsonGetLastResult`.
 #define jsonString(key, ...) \
     SHU_JsonString(key);     \
     SHUM_JSON_CHECK(key, ##__VA_ARGS__)
 
+/// !!! DO NOT USE THIS FUNCTION ALONE, USE `jsonInteger` MACRO INSTEAD !!!
 SHUC_JSON_INTEGER_TYPE SHU_JsonInteger(const char *key);
 
+/// @brief
+/// @param key Key of the Json object member. Left side of `:`.
+/// @param onFail Code section to call if this operation fails. Do not forget semicolons. (eg. SHU_LogError(SHU_JsonGetLastResult(), "failed to parse file 'shujsn.json'");)
+/// @return
+/// @note You can retrieve the error code by calling function `SHU_JsonGetLastResult`.
 #define jsonInteger(key, ...) \
     SHU_JsonInteger(key);     \
     SHUM_JSON_CHECK(key, ##__VA_ARGS__)
 
+/// !!! DO NOT USE THIS FUNCTION ALONE, USE `jsonDecimal` MACRO INSTEAD !!!
 SHUC_JSON_DECIMAL_TYPE SHU_JsonDecimal(const char *key);
 
+/// @brief
+/// @param key Key of the Json object member. Left side of `:`.
+/// @param onFail Code section to call if this operation fails. Do not forget semicolons. (eg. SHU_LogError(SHU_JsonGetLastResult(), "failed to parse file 'shujsn.json'");)
+/// @return
+/// @note You can retrieve the error code by calling function `SHU_JsonGetLastResult`.
 #define jsonDecimal(key, ...) \
     SHU_JsonDecimal(key);     \
     SHUM_JSON_CHECK(key, ##__VA_ARGS__)
 
+/// !!! DO NOT USE THIS FUNCTION ALONE, USE `jsonBoolean` MACRO INSTEAD !!!
 SHUC_JSON_BOOLEAN_TYPE SHU_JsonBoolean(const char *key);
 
+/// @brief
+/// @param key Key of the Json object member. Left side of `:`.
+/// @param onFail Code section to call if this operation fails. Do not forget semicolons. (eg. SHU_LogError(SHU_JsonGetLastResult(), "failed to parse file 'shujsn.json'");)
+/// @return
+/// @note You can retrieve the error code by calling function `SHU_JsonGetLastResult`.
 #define jsonBoolean(key, ...) \
     SHU_JsonBoolean(key);     \
     SHUM_JSON_CHECK(key, ##__VA_ARGS__)
 
+/// !!! DO NOT USE THIS FUNCTION ALONE, USE `jsonArrayStatic` MACRO INSTEAD !!!
 SHUJsonArrayStatic SHU_JsonArrayStatic(const char *key);
 
+/// @brief
+/// @param key Key of the Json object member. Left side of `:`.
+/// @param onFail Code section to call if this operation fails. Do not forget semicolons. (eg. SHU_LogError(SHU_JsonGetLastResult(), "failed to parse file 'shujsn.json'");)
+/// @return
+/// @note You can retrieve the error code by calling function `SHU_JsonGetLastResult`.
 #define jsonArrayStatic(key, ...) \
     SHU_JsonArrayStatic(key);     \
     SHUM_JSON_CHECK(key, ##__VA_ARGS__)
 
+/// !!! DO NOT USE THIS FUNCTION ALONE, USE `jsonArrayDynamic` MACRO INSTEAD !!!
 SHUJsonArrayDynamic SHU_JsonArrayDynamic(const char *key);
 
+/// @brief
+/// @param key Key of the Json object member. Left side of `:`.
+/// @param onFail Code section to call if this operation fails. Do not forget semicolons. (eg. SHU_LogError(SHU_JsonGetLastResult(), "failed to parse file 'shujsn.json'");)
+/// @return
+/// @note You can retrieve the error code by calling function `SHU_JsonGetLastResult`.
 #define jsonArrayDynamic(key, ...) \
     SHU_JsonArrayDynamic(key);     \
     SHUM_JSON_CHECK(key, ##__VA_ARGS__)

@@ -27,7 +27,6 @@ int main(int argc, char **argv)
         SHUC_JSON_BOOLEAN_TYPE testBool = jsonBoolean("is_active");
 
         SHUJsonArrayStatic myArr = jsonArrayStatic("arrayOfNumbers");
-
         SHUJsonArrayDynamic myMixArr = jsonArrayDynamic("mixedArray");
 
         for (usz i = 0; i < myMixArr.count; i++)
