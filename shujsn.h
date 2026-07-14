@@ -183,11 +183,21 @@ SHUJsonArrayDynamic SHU_JsonArrayDynamic(const char *key);
 
 #ifdef SHU_IMPLEMENTATION
 
+#pragma region Internals
+
 static struct
 {
+    FILE *file;
     SHUResult lastResult;
     SHUJson *objects;
+    usz objectCount;
 } SHUJSN = {0};
+
+static SHUJsonType SHUI_JsonGetTypeOfValue(SHUSliceView valueString)
+{
+}
+
+#pragma endregion Internals
 
 SHUResult SHU_JsonGetLastResult(void)
 {
@@ -196,30 +206,50 @@ SHUResult SHU_JsonGetLastResult(void)
 
 const SHUJson *SHU_JsonObject(const char *key)
 {
+    SHU_CheckPanicNullPointer(key);
+
+    if (SHUJSN.file == NULL) // root object
+    {
+        SHUJSN.file = fopen(key, "r");
+        if (SHUJSN.file == NULL)
+        {
+            SHUJSN.lastResult = SHUResult_ErrNotFound;
+            return NULL;
+        }
+    }
+
+    // todo parse with helper functions
+    // todo close root object
 }
 
 SHUSliceView SHU_JsonString(const char *key)
 {
+    SHU_CheckPanicNullPointer(key);
 }
 
 SHUC_JSON_INTEGER_TYPE SHU_JsonInteger(const char *key)
 {
+    SHU_CheckPanicNullPointer(key);
 }
 
 SHUC_JSON_DECIMAL_TYPE SHU_JsonDecimal(const char *key)
 {
+    SHU_CheckPanicNullPointer(key);
 }
 
 SHUC_JSON_BOOLEAN_TYPE SHU_JsonBoolean(const char *key)
 {
+    SHU_CheckPanicNullPointer(key);
 }
 
 SHUJsonArrayStatic SHU_JsonArrayStatic(const char *key)
 {
+    SHU_CheckPanicNullPointer(key);
 }
 
 SHUJsonArrayDynamic SHU_JsonArrayDynamic(const char *key)
 {
+    SHU_CheckPanicNullPointer(key);
 }
 
 #endif // SHU_IMPLEMENTATION
