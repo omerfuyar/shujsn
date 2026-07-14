@@ -8,14 +8,14 @@ int main(int argc, char **argv)
     i64 testI = 0;
     SHUSlice testS = cs0;
 
-    json("shujsn.json", SHU_LogError(SHUResult_ErrFile, "failed to parse file 'shujsn.json'");)
+    json("shujsn.json", SHU_LogError(SHU_JsonGetLastResult(), "failed to parse file 'shujsn.json'");)
     { // file allocated here
 
-        // these values valid until free, garbage afterwards
-        const SHUJson *root = jsonObject(NULL);
+        // these values valid until free, garbage after free
         SHUSliceView bar = jsonString("foo", SHU_LogWarning("This would panic otherwise."););
+        f64 foo = jsonDecimal("negativeFloating");
 
-        // these values copied to buffer before starting json
+        // these values copied to buffer that will outlive json lifetime
         SHUSliceView tempString = jsonString("myString");
         testS.size = tempString.size;
         testS.data = malloc(testS.size);
@@ -26,14 +26,16 @@ int main(int argc, char **argv)
 
         SHUC_JSON_BOOLEAN_TYPE testBool = jsonBoolean("is_active");
 
-        SHUSliceView myArr = jsonArrayStatic("arrayOfNumbers", i64);
+        SHUJsonArrayStatic myArr = jsonArrayStatic("arrayOfNumbers");
 
-        jsonArrayDynamic("mixedArray") // iterates over elements
+        SHUJsonArrayDynamic myMixArr = jsonArrayDynamic("mixedArray");
+
+        for (usz i = 0; i < myMixArr.count; i++)
         {
-            switch (arrElementType)
+            switch (myMixArr.elements[i].type)
             {
             case SHUJsonType_Integer:
-                i64 arrInt = jsonInteger(NULL);
+                i64 arrInt = *(i64 *)myMixArr.elements[i].data;
                 break;
             default:
                 break;
@@ -42,7 +44,7 @@ int main(int argc, char **argv)
 
         json("nested")
         {
-            const SHUJson *nullValue = jsonObject("metadata");
+            const SHUJson *nullValue = json("metadata"); // todo free stack even if there is no braces
         }
     } // file freed here
 }

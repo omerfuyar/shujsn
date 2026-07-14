@@ -48,70 +48,90 @@ typedef enum SHUJsonType
     SHUJsonType_Boolean,
     SHUJsonType_ArrayStatic,
     SHUJsonType_ArrayDynamic,
+    SHUJsonType_Null,
 } SHUJsonType;
 
 typedef struct SHUJsonArrayStatic
 {
     SHUSliceView data;
-    const usz typeSize;
+    SHUJsonType type;
 } SHUJsonArrayStatic;
 
 typedef struct SHUJsonArrayDynamic
 {
-
+    struct
+    {
+        void *data;
+        SHUJsonType type;
+    } *elements;
+    usz count;
 } SHUJsonArrayDynamic;
 
-typedef union SHUJson
+typedef struct SHUJson
 {
-    SHUJson *object;
-    SHUSlice string;
-    SHUC_JSON_INTEGER_TYPE integer;
-    SHUC_JSON_DECIMAL_TYPE decimal;
-    SHUC_JSON_BOOLEAN_TYPE boolean;
-    SHUJsonArrayStatic staticArray;
+    SHUSliceView key;
+    SHUJsonType type;
+    union
+    {
+        struct
+        {
+            struct SHUJson *children;
+            usz count;
+        } object;
+        SHUSliceView string;
+        SHUC_JSON_INTEGER_TYPE integer;
+        SHUC_JSON_DECIMAL_TYPE decimal;
+        SHUC_JSON_BOOLEAN_TYPE boolean;
+        SHUJsonArrayStatic arrayStatic;
+        SHUJsonArrayDynamic arrayDynamic;
+    } data;
 } SHUJson;
 
 SHUResult SHU_JsonGetLastResult(void);
 
-#define json(...)
-
 const SHUJson *SHU_JsonObject(const char *key);
 
-#define jsonObject(key, ...) \
-    SHU_JsonObject(key);     \
-    SHUM_JSON_CHECK(key, __VA_ARGS__)
+#define json(key, ...)   \
+    SHU_JsonObject(key); \
+    SHUM_JSON_CHECK(key, ##__VA_ARGS__)
 
 SHUSliceView SHU_JsonString(const char *key);
 
 #define jsonString(key, ...) \
     SHU_JsonString(key);     \
-    SHUM_JSON_CHECK(key, __VA_ARGS__)
+    SHUM_JSON_CHECK(key, ##__VA_ARGS__)
 
 SHUC_JSON_INTEGER_TYPE SHU_JsonInteger(const char *key);
 
 #define jsonInteger(key, ...) \
     SHU_JsonInteger(key);     \
-    SHUM_JSON_CHECK(key, __VA_ARGS__)
+    SHUM_JSON_CHECK(key, ##__VA_ARGS__)
 
 SHUC_JSON_DECIMAL_TYPE SHU_JsonDecimal(const char *key);
 
 #define jsonDecimal(key, ...) \
     SHU_JsonDecimal(key);     \
-    SHUM_JSON_CHECK(key, __VA_ARGS__)
+    SHUM_JSON_CHECK(key, ##__VA_ARGS__)
 
 SHUC_JSON_BOOLEAN_TYPE SHU_JsonBoolean(const char *key);
 
 #define jsonBoolean(key, ...) \
     SHU_JsonBoolean(key);     \
-    SHUM_JSON_CHECK(key, __VA_ARGS__)
+    SHUM_JSON_CHECK(key, ##__VA_ARGS__)
 
 SHUJsonArrayStatic SHU_JsonArrayStatic(const char *key);
 
 #define jsonArrayStatic(key, ...) \
     SHU_JsonArrayStatic(key);     \
-    SHUM_JSON_CHECK(key, __VA_ARGS__)
+    SHUM_JSON_CHECK(key, ##__VA_ARGS__)
 
-#define jsonArrayDynamic(...)
+SHUJsonArrayDynamic SHU_JsonArrayDynamic(const char *key);
+
+#define jsonArrayDynamic(key, ...) \
+    SHU_JsonArrayDynamic(key);     \
+    SHUM_JSON_CHECK(key, ##__VA_ARGS__)
+
+// todo iterator for dynamic array
 
 #pragma endregion Declarations
 
@@ -151,6 +171,10 @@ SHUC_JSON_BOOLEAN_TYPE SHU_JsonBoolean(const char *key)
 }
 
 SHUJsonArrayStatic SHU_JsonArrayStatic(const char *key)
+{
+}
+
+SHUJsonArrayDynamic SHU_JsonArrayDynamic(const char *key)
 {
 }
 
