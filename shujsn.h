@@ -41,6 +41,7 @@
 
 typedef enum SHUJsonType
 {
+    SHUJsonType_Invalid,
     SHUJsonType_Object,
     SHUJsonType_String,
     SHUJsonType_Integer,
@@ -193,41 +194,65 @@ static struct
     usz objectCount;
 } SHUJSN = {0};
 
-static SHUJsonType SHUI_JsonGetTypeOfValue(SHUSliceView valueString)
+bool SHU_SliceAreSame(SHUSliceView sliceA, SHUSliceView sliceB)
 {
-    for (usz i = 0; i < valueString.size; i++)
+    usz cap = SHUMin(sliceA.size, sliceB.size);
+    for (usz i = 0; i < cap; i++)
     {
-        char character = *(char *)(valueString.data + i);
-        switch (character)
+        u8 byteA = *(u8 *)(sliceA.data + i);
+        u8 byteB = *(u8 *)(sliceB.data + i);
+
+        if (byteA != byteB)
         {
-        case '\"':
-            break;
-        case '.':
-            break;
-        default:
-            break;
+            return false;
         }
     }
 
-    if (strncmp((const char *)valueString.data, "true", valueString.size) == 0)
+    return true;
+}
+
+// pass a slice that is from start of the expression until the end of it
+// typically start with whitespace or colon, end with comma or whitespace.
+static SHUJsonType SHUI_JsonGetTypeOfValue(SHUSliceView valueString)
+{
+    if (SHU_SliceAreSame(valueString, csv(cs("true", 4))) ||
+        SHU_SliceAreSame(valueString, csv(cs("false", 5))))
     {
-        goto boolean;
+        return SHUJsonType_Boolean;
+    }
+    else if (SHU_SliceAreSame(valueString, csv(cs("null", 4))))
+    {
+        return SHUJsonType_Null;
     }
 
-    goto final;
+    switch (*(char *)(valueString.data))
+    {
+    case '\"':
+        return SHUJsonType_String;
+    case '[':
+        goto array;
+    case '{':
+        return SHUJsonType_Object;
+    }
 
-    // validation
-string:
-integer:
-decimal:
-boolean:
+    for (usz i = 1; i < valueString.size; i++)
+    {
+        char character = *(char *)(valueString.data + i);
+        if (character != '.' && character < '0' && character > '9')
+        {
+            return SHUJsonType_Invalid;
+        }
+    }
+
+    return SHUJsonType_Integer;
+
 array:
 arrayStatic:
+    return SHUJsonType_ArrayStatic;
 arrayDynamic:
-null:
+    return SHUJsonType_ArrayDynamic;
 
-final:
-    SHUJSN.lastResult = SHUResult_Ok;
+    // todo validate
 }
 
 #pragma endregion Internals
