@@ -70,6 +70,7 @@ typedef struct SHUJsonArrayDynamic
 
 typedef struct SHUJson
 {
+    // struct SHUJson *parent;
     SHUSliceView key;
     SHUJsonType type;
     union
@@ -85,7 +86,7 @@ typedef struct SHUJson
         SHUC_JSON_BOOLEAN_TYPE boolean;
         SHUJsonArrayStatic arrayStatic;
         SHUJsonArrayDynamic arrayDynamic;
-    } data;
+    } value;
 } SHUJson;
 
 /// @brief Gets the result of the last executed function.
@@ -93,24 +94,37 @@ typedef struct SHUJson
 SHUResult SHU_JsonGetLastResult(void);
 
 /// !!! DO NOT USE THIS FUNCTION ALONE, USE `json` MACRO INSTEAD !!!
-const SHUJson *SHU_JsonObject(const char *key);
+SHUJson SHU_JsonObject(const char *key);
 
-/// @brief
-/// @param key Key of the Json object member. Left side of `:`.
-/// @param onFail Code section to call if this operation fails. Do not forget semicolons. (eg. SHU_LogError(SHU_JsonGetLastResult(), "failed to parse file 'shujsn.json'");)
-/// @return
+/// !!! DO NOT USE THIS FUNCTION, USE `json` MACRO WITH BRACES INSTEAD !!!
+void SHU_JsonObjectDestroy(SHUJson object);
+
+/// @brief Explores a Json object inside the current object. Searches for a file if the object stack is empty.
+/// @param key Key of the Json object member. Left side of `:`. Cannot be NULL.
+/// @param onFail Code section to call if this operation fails. Panics on fail if this section is empty. Do not forget semicolons. (eg. SHU_LogError(SHU_JsonGetLastResult(), "failed to parse file 'shujsn.json'");)
 /// @note You can retrieve the error code by calling function `SHU_JsonGetLastResult`.
-#define json(key, ...)   \
-    SHU_JsonObject(key); \
+#define json(key, ...)                                   \
+    SHUJson __tempJsonObject = SHU_JsonObject(key);      \
+    SHUM_JSON_CHECK(key, ##__VA_ARGS__)                  \
+    for (; __tempJsonObject.type != SHUJsonType_Invalid; \
+         SHU_JsonObjectDestroy(__tempJsonObject), __tempJsonObject.type = SHUJsonType_Invalid)
+
+/// @brief Gets the object with specified key. Used for all type of members, not only objects with braces. But its easier to use specific typed functions if you know the type you are looking for.
+/// @param key Key of the Json object member. Left side of `:`. Cannot be NULL.
+/// @param onFail Code section to call if this operation fails. Panics on fail if this section is empty. Do not forget semicolons. (eg. SHU_LogError(SHU_JsonGetLastResult(), "failed to parse file 'shujsn.json'");)
+/// @return The object struct itself.
+/// @note You can retrieve the error code by calling function `SHU_JsonGetLastResult`.
+#define jsonObject(key, ...) \
+    SHU_JsonObject(key);     \
     SHUM_JSON_CHECK(key, ##__VA_ARGS__)
 
 /// !!! DO NOT USE THIS FUNCTION ALONE, USE `jsonString` MACRO INSTEAD !!!
 SHUSliceView SHU_JsonString(const char *key);
 
-/// @brief
-/// @param key Key of the Json object member. Left side of `:`.
-/// @param onFail Code section to call if this operation fails. Do not forget semicolons. (eg. SHU_LogError(SHU_JsonGetLastResult(), "failed to parse file 'shujsn.json'");)
-/// @return
+/// @brief Gets the object with specified key as string, fails if it's not a string.
+/// @param key Key of the Json object member. Left side of `:`. Cannot be NULL.
+/// @param onFail Code section to call if this operation fails. Panics on fail if this section is empty. Do not forget semicolons. (eg. SHU_LogError(SHU_JsonGetLastResult(), "failed to parse file 'shujsn.json'");)
+/// @return The slice view to the string.
 /// @note You can retrieve the error code by calling function `SHU_JsonGetLastResult`.
 #define jsonString(key, ...) \
     SHU_JsonString(key);     \
@@ -119,10 +133,10 @@ SHUSliceView SHU_JsonString(const char *key);
 /// !!! DO NOT USE THIS FUNCTION ALONE, USE `jsonInteger` MACRO INSTEAD !!!
 SHUC_JSON_INTEGER_TYPE SHU_JsonInteger(const char *key);
 
-/// @brief
-/// @param key Key of the Json object member. Left side of `:`.
-/// @param onFail Code section to call if this operation fails. Do not forget semicolons. (eg. SHU_LogError(SHU_JsonGetLastResult(), "failed to parse file 'shujsn.json'");)
-/// @return
+/// @brief Gets the object with specified key as integer, fails if it's not an integer.
+/// @param key Key of the Json object member. Left side of `:`. Cannot be NULL.
+/// @param onFail Code section to call if this operation fails. Panics on fail if this section is empty. Do not forget semicolons. (eg. SHU_LogError(SHU_JsonGetLastResult(), "failed to parse file 'shujsn.json'");)
+/// @return The integer itself. See also macro `SHUC_JSON_INTEGER_TYPE`.
 /// @note You can retrieve the error code by calling function `SHU_JsonGetLastResult`.
 #define jsonInteger(key, ...) \
     SHU_JsonInteger(key);     \
@@ -131,10 +145,10 @@ SHUC_JSON_INTEGER_TYPE SHU_JsonInteger(const char *key);
 /// !!! DO NOT USE THIS FUNCTION ALONE, USE `jsonDecimal` MACRO INSTEAD !!!
 SHUC_JSON_DECIMAL_TYPE SHU_JsonDecimal(const char *key);
 
-/// @brief
-/// @param key Key of the Json object member. Left side of `:`.
-/// @param onFail Code section to call if this operation fails. Do not forget semicolons. (eg. SHU_LogError(SHU_JsonGetLastResult(), "failed to parse file 'shujsn.json'");)
-/// @return
+/// @brief Gets the object with specified key as decimal number, fails if it's not a decimal number.
+/// @param key Key of the Json object member. Left side of `:`. Cannot be NULL.
+/// @param onFail Code section to call if this operation fails. Panics on fail if this section is empty. Do not forget semicolons. (eg. SHU_LogError(SHU_JsonGetLastResult(), "failed to parse file 'shujsn.json'");)
+/// @return The decimal number itself. See also macro `SHUC_JSON_DECIMAL_TYPE`.
 /// @note You can retrieve the error code by calling function `SHU_JsonGetLastResult`.
 #define jsonDecimal(key, ...) \
     SHU_JsonDecimal(key);     \
@@ -143,10 +157,10 @@ SHUC_JSON_DECIMAL_TYPE SHU_JsonDecimal(const char *key);
 /// !!! DO NOT USE THIS FUNCTION ALONE, USE `jsonBoolean` MACRO INSTEAD !!!
 SHUC_JSON_BOOLEAN_TYPE SHU_JsonBoolean(const char *key);
 
-/// @brief
-/// @param key Key of the Json object member. Left side of `:`.
-/// @param onFail Code section to call if this operation fails. Do not forget semicolons. (eg. SHU_LogError(SHU_JsonGetLastResult(), "failed to parse file 'shujsn.json'");)
-/// @return
+/// @brief Gets the object with specified key as boolean, fails if it's not a boolean.
+/// @param key Key of the Json object member. Left side of `:`. Cannot be NULL.
+/// @param onFail Code section to call if this operation fails. Panics on fail if this section is empty. Do not forget semicolons. (eg. SHU_LogError(SHU_JsonGetLastResult(), "failed to parse file 'shujsn.json'");)
+/// @return The boolean itself. See also macro `SHUC_JSON_BOOLEAN_TYPE`.
 /// @note You can retrieve the error code by calling function `SHU_JsonGetLastResult`.
 #define jsonBoolean(key, ...) \
     SHU_JsonBoolean(key);     \
@@ -155,10 +169,10 @@ SHUC_JSON_BOOLEAN_TYPE SHU_JsonBoolean(const char *key);
 /// !!! DO NOT USE THIS FUNCTION ALONE, USE `jsonArrayStatic` MACRO INSTEAD !!!
 SHUJsonArrayStatic SHU_JsonArrayStatic(const char *key);
 
-/// @brief
-/// @param key Key of the Json object member. Left side of `:`.
-/// @param onFail Code section to call if this operation fails. Do not forget semicolons. (eg. SHU_LogError(SHU_JsonGetLastResult(), "failed to parse file 'shujsn.json'");)
-/// @return
+/// @brief Gets the object with specified key as static array (array that all of its members are the same type), fails if it's not a static array.
+/// @param key Key of the Json object member. Left side of `:`. Cannot be NULL.
+/// @param onFail Code section to call if this operation fails. Panics on fail if this section is empty. Do not forget semicolons. (eg. SHU_LogError(SHU_JsonGetLastResult(), "failed to parse file 'shujsn.json'");)
+/// @return The static array struct itself.
 /// @note You can retrieve the error code by calling function `SHU_JsonGetLastResult`.
 #define jsonArrayStatic(key, ...) \
     SHU_JsonArrayStatic(key);     \
@@ -167,16 +181,19 @@ SHUJsonArrayStatic SHU_JsonArrayStatic(const char *key);
 /// !!! DO NOT USE THIS FUNCTION ALONE, USE `jsonArrayDynamic` MACRO INSTEAD !!!
 SHUJsonArrayDynamic SHU_JsonArrayDynamic(const char *key);
 
-/// @brief
-/// @param key Key of the Json object member. Left side of `:`.
-/// @param onFail Code section to call if this operation fails. Do not forget semicolons. (eg. SHU_LogError(SHU_JsonGetLastResult(), "failed to parse file 'shujsn.json'");)
-/// @return
+/// @brief Gets the object with specified key as dynamic array (array that its members are different types), fails if it's not a dynamic array. See also `jsonArrayDynamicIterate`.
+/// @param key Key of the Json object member. Left side of `:`. Cannot be NULL.
+/// @param onFail Code section to call if this operation fails. Panics on fail if this section is empty. Do not forget semicolons. (eg. SHU_LogError(SHU_JsonGetLastResult(), "failed to parse file 'shujsn.json'");)
+/// @return The dynamic array struct itself.
 /// @note You can retrieve the error code by calling function `SHU_JsonGetLastResult`.
 #define jsonArrayDynamic(key, ...) \
     SHU_JsonArrayDynamic(key);     \
     SHUM_JSON_CHECK(key, ##__VA_ARGS__)
 
-// todo iterator for dynamic array
+/// @brief Iterates over a dynamic array, assigning an object on each iteration.
+/// @param array Array to iterate over.
+/// @param currentObject The current object struct, ignoring the key member.
+#define jsonArrayDynamicIterate(array, currentObject) // todo
 
 #pragma endregion Declarations
 
@@ -190,11 +207,11 @@ static struct
 {
     FILE *file;
     SHUResult lastResult;
-    SHUJson *objects;
-    usz objectCount;
+    SHUJson *objects; // malloced
+    usz currentDepth;
 } SHUJSN = {0};
 
-bool SHU_SliceAreSame(SHUSliceView sliceA, SHUSliceView sliceB)
+bool SHUI_SliceAreSame(SHUSliceView sliceA, SHUSliceView sliceB)
 {
     usz cap = SHUMin(sliceA.size, sliceB.size);
     for (usz i = 0; i < cap; i++)
@@ -211,48 +228,54 @@ bool SHU_SliceAreSame(SHUSliceView sliceA, SHUSliceView sliceB)
     return true;
 }
 
-// pass a slice that is from start of the expression until the end of it
-// typically start with whitespace or colon, end with comma or whitespace.
-static SHUJsonType SHUI_JsonGetTypeOfValue(SHUSliceView valueString)
+static SHUJson SHUI_JsonParseObject(SHUSliceView keyString, SHUSliceView valueString)
 {
-    if (SHU_SliceAreSame(valueString, csv(cs("true", 4))) ||
-        SHU_SliceAreSame(valueString, csv(cs("false", 5))))
+    char firstCharacter = *(char *)(valueString.data);
+    switch (firstCharacter)
     {
-        return SHUJsonType_Boolean;
-    }
-    else if (SHU_SliceAreSame(valueString, csv(cs("null", 4))))
-    {
-        return SHUJsonType_Null;
-    }
-
-    switch (*(char *)(valueString.data))
-    {
+    case '{':
+        goto object;
     case '\"':
-        return SHUJsonType_String;
+        goto string;
     case '[':
         goto array;
-    case '{':
-        return SHUJsonType_Object;
     }
 
+    if ((firstCharacter >= '0' && firstCharacter <= '9') || firstCharacter == '-')
+    {
+        goto number;
+    }
+
+    if (SHUI_SliceAreSame(valueString, csv(cs("true", 4))))
+    {
+        return (SHUJson){.key = keyString, .type = SHUJsonType_Boolean, .value.boolean = true};
+    }
+    else if (SHUI_SliceAreSame(valueString, csv(cs("false", 5))))
+    {
+        return (SHUJson){.key = keyString, .type = SHUJsonType_Boolean, .value.boolean = false};
+    }
+    else if (SHUI_SliceAreSame(valueString, csv(cs("null", 4))))
+    {
+        return (SHUJson){.key = keyString, .type = SHUJsonType_Null, .value = {0}};
+    }
+
+    return (SHUJson){.key = csv(cs0), .type = SHUJsonType_Invalid, .value = {0}};
+
+object:
+string:
+number:
     for (usz i = 1; i < valueString.size; i++)
     {
         char character = *(char *)(valueString.data + i);
-        if (character != '.' && character < '0' && character > '9')
+        if (character != '.' && character < '0' && character > '9') // todo exponent 'e'
         {
-            return SHUJsonType_Invalid;
         }
     }
-
-    return SHUJsonType_Integer;
-
+integer:
+decimal:
 array:
 arrayStatic:
-    return SHUJsonType_ArrayStatic;
 arrayDynamic:
-    return SHUJsonType_ArrayDynamic;
-
-    // todo validate
 }
 
 #pragma endregion Internals
@@ -262,7 +285,7 @@ SHUResult SHU_JsonGetLastResult(void)
     return SHUJSN.lastResult;
 }
 
-const SHUJson *SHU_JsonObject(const char *key)
+SHUJson SHU_JsonObject(const char *key)
 {
     SHU_CheckPanicNullPointer(key);
 
@@ -272,13 +295,18 @@ const SHUJson *SHU_JsonObject(const char *key)
         if (SHUJSN.file == NULL)
         {
             SHUJSN.lastResult = SHUResult_ErrNotFound;
-            return NULL;
+            return (SHUJson){0};
         }
     }
 
     // todo parse with helper functions
     // todo close root object
 
+    SHUJSN.lastResult = SHUResult_Ok;
+}
+
+void SHU_JsonObjectDestroy(SHUJson object)
+{
     SHUJSN.lastResult = SHUResult_Ok;
 }
 

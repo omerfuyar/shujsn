@@ -7,6 +7,7 @@
   "num": 31,
   "negativeNum": -42,
   "largeNum": 9007199254740991,
+  "exponentNum": 9e-10,
   "zero": 0,
   "is_active": true,
   "is_disabled": false,
@@ -63,7 +64,6 @@
     ]
   ],
   "emptyArray": [],
-  "emptyObject": {},
   "nested": {
     "module": "core-01",
     "metadata": null,
@@ -75,5 +75,6 @@
         3
       ]
     }
-  }
+  },
+  "emptyObject": {}
 }
