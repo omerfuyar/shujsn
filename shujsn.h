@@ -22,6 +22,10 @@
 #define SHUC_JSON_BOOLEAN_TYPE bool
 #endif
 
+#ifndef SHUC_JSON_NUMBER_BUFFER
+#define SHUC_JSON_NUMBER_BUFFER 64
+#endif
+
 #define SHUM_JSON_CHECK(key, ...)                                                     \
     if (SHU_JsonGetLastResult())                                                      \
     {                                                                                 \
@@ -54,7 +58,7 @@ typedef enum SHUJsonType
 
 typedef struct SHUJsonArrayStatic
 {
-    SHUSliceView data;
+    SHUSlice data; // todo make view
     SHUJsonType type;
 } SHUJsonArrayStatic;
 
@@ -71,7 +75,7 @@ typedef struct SHUJsonArrayDynamic
 typedef struct SHUJson
 {
     // struct SHUJson *parent;
-    SHUSliceView key;
+    SHUSlice key; // todo make view
     SHUJsonType type;
     union
     {
@@ -80,7 +84,7 @@ typedef struct SHUJson
             struct SHUJson *children;
             usz count;
         } object;
-        SHUSliceView string;
+        SHUSlice string; // todo make view
         SHUC_JSON_INTEGER_TYPE integer;
         SHUC_JSON_DECIMAL_TYPE decimal;
         SHUC_JSON_BOOLEAN_TYPE boolean;
@@ -205,14 +209,25 @@ SHUJsonArrayDynamic SHU_JsonArrayDynamic(const char *key);
 
 static struct
 {
-    FILE *file;
     SHUResult lastResult;
-    SHUJson *objects; // malloced
-    usz currentDepth;
+    SHUJson *nodes;
+    usz nodeCount;
+
+    struct
+    {
+        SHUJson **data;
+        usz stackSize;
+        usz depth;
+    } stack;
 } SHUJSN = {0};
 
-bool SHUI_SliceAreSame(SHUSliceView sliceA, SHUSliceView sliceB)
+static bool SHUI_SliceAreSame(SHUSliceView sliceA, SHUSliceView sliceB)
 {
+    if (sliceA.size != sliceB.size)
+    {
+        return false;
+    }
+
     usz cap = SHUMin(sliceA.size, sliceB.size);
     for (usz i = 0; i < cap; i++)
     {
@@ -228,7 +243,34 @@ bool SHUI_SliceAreSame(SHUSliceView sliceA, SHUSliceView sliceB)
     return true;
 }
 
-static SHUJson SHUI_JsonParseObject(SHUSliceView keyString, SHUSliceView valueString)
+// returns the distance from current pointer of slice to end of whitespace according to json standard.
+static usz SHUI_SkipWhiteSpace(SHUSliceView string)
+{
+    usz distance = 0;
+
+    for (usz i = 0; i < string.size; i++)
+    {
+        char character = *(char *)(string.data);
+        switch (character)
+        {
+        case ' ':
+            return distance++;
+        case '\n':
+            return distance++;
+        case '\r':
+            return distance++;
+        case '\t':
+            return distance++;
+        default:
+            return distance;
+        }
+    }
+
+    return distance; // distance == string.size
+}
+
+// ignores .key member
+static SHUResult SHUI_JsonParseObject(SHUJson *retObject, SHUSliceView valueString)
 {
     char firstCharacter = *(char *)(valueString.data);
     switch (firstCharacter)
@@ -248,34 +290,150 @@ static SHUJson SHUI_JsonParseObject(SHUSliceView keyString, SHUSliceView valueSt
 
     if (SHUI_SliceAreSame(valueString, csv(cs("true", 4))))
     {
-        return (SHUJson){.key = keyString, .type = SHUJsonType_Boolean, .value.boolean = true};
+        retObject->type = SHUJsonType_Boolean;
+        retObject->value.boolean = true;
+        return SHUResult_Ok;
     }
     else if (SHUI_SliceAreSame(valueString, csv(cs("false", 5))))
     {
-        return (SHUJson){.key = keyString, .type = SHUJsonType_Boolean, .value.boolean = false};
+        retObject->type = SHUJsonType_Boolean;
+        retObject->value.boolean = false;
+        return SHUResult_Ok;
     }
     else if (SHUI_SliceAreSame(valueString, csv(cs("null", 4))))
     {
-        return (SHUJson){.key = keyString, .type = SHUJsonType_Null, .value = {0}};
+        retObject->type = SHUJsonType_Null;
+        return SHUResult_Ok;
     }
 
-    return (SHUJson){.key = csv(cs0), .type = SHUJsonType_Invalid, .value = {0}};
+    return SHUResult_ErrBadData;
 
 object:
+    // todo fill retObject
+    // todo recurse
+
+    return SHUResult_Ok;
+
 string:
+    retObject->type = SHUJsonType_String;
+    retObject->value.string.data = (char *)(valueString.data) + 1;
+    retObject->value.string.size = valueString.size - 2;
+    return SHUResult_Ok;
+
 number:
+    errno = 0;
+    char *strEnd = NULL;
+    char numberBuffer[SHUC_JSON_NUMBER_BUFFER] = {0};
+
+    usz limitSize = SHUMin(valueString.size, SHUC_JSON_NUMBER_BUFFER - 1);
+    memcpy(numberBuffer, valueString.data, limitSize);
+    numberBuffer[limitSize] = '\0';
+
     for (usz i = 1; i < valueString.size; i++)
     {
         char character = *(char *)(valueString.data + i);
-        if (character != '.' && character < '0' && character > '9') // todo exponent 'e'
+        if (character == '.' || character == 'e')
         {
+            goto decimal;
         }
-    }
+    } // fallback to integer
 integer:
+    SHUC_JSON_INTEGER_TYPE returnInt = (SHUC_JSON_INTEGER_TYPE)strtoll(numberBuffer, *strEnd, 10);
+
+    if (errno != 0)
+    {
+        return SHUResult_ErrBadData;
+    }
+
+    if (*strEnd != '\0')
+    {
+        return SHUResult_ErrBadData;
+    }
+
+    retObject->type = SHUJsonType_Integer;
+    retObject->value.integer = returnInt;
+    return SHUResult_Ok;
+
 decimal:
+    SHUC_JSON_DECIMAL_TYPE returnDcm = (SHUC_JSON_DECIMAL_TYPE)strtod(numberBuffer, *strEnd);
+
+    if (errno != 0)
+    {
+        return SHUResult_ErrBadData;
+    }
+
+    if (*strEnd != '\0')
+    {
+        return SHUResult_ErrBadData;
+    }
+
+    retObject->type = SHUJsonType_Decimal;
+    retObject->value.decimal = returnDcm;
+    return SHUResult_Ok;
+
 array:
+
 arrayStatic:
+    retObject->type = SHUJsonType_ArrayStatic;
+    retObject->value.arrayStatic = (SHUJsonArrayStatic){};
+    return SHUResult_Ok;
 arrayDynamic:
+    retObject->type = SHUJsonType_ArrayDynamic;
+    retObject->value.arrayDynamic = (SHUJsonArrayDynamic){};
+    return SHUResult_Ok;
+}
+
+static SHUResult SHUI_JsonParseFile(const char *fileName)
+{
+    FILE *jsonFile = fopen(fileName, "rb");
+
+    if (jsonFile == NULL)
+    {
+        return SHUResult_ErrNotFound;
+    }
+
+    if (fseek(jsonFile, 0, SEEK_END) != 0)
+    {
+        fclose(jsonFile);
+        return SHUResult_ErrInternal;
+    }
+
+    SHUSlice jsonFileString = cs0;
+
+    jsonFileString.size = ftell(jsonFile);
+    if (jsonFileString.size < 0)
+    {
+        fclose(jsonFile);
+        return SHUResult_ErrInternal;
+    }
+
+    rewind(jsonFile);
+
+    jsonFileString.data = malloc(jsonFileString.size + 1);
+    if (jsonFileString.data == NULL)
+    {
+        fclose(jsonFile);
+        return SHUResult_ErrAllocation;
+    }
+
+    size_t bytesRead = fread(jsonFileString.data, 1, jsonFileString.size, jsonFile);
+    if (bytesRead < jsonFileString.size && ferror(jsonFile))
+    {
+        free(jsonFileString.data);
+        fclose(jsonFile);
+        return SHUResult_ErrInternal;
+    }
+    fclose(jsonFile);
+
+    ((char *)jsonFileString.data)[jsonFileString.size] = '\0';
+
+    // todo parse all objects
+
+    free(jsonFileString.data);
+}
+
+static void SHUI_JsonFree()
+{
 }
 
 #pragma endregion Internals
@@ -289,24 +447,27 @@ SHUJson SHU_JsonObject(const char *key)
 {
     SHU_CheckPanicNullPointer(key);
 
-    if (SHUJSN.file == NULL) // root object
+    if (SHUJSN.stack.depth == 0) // root object
     {
-        SHUJSN.file = fopen(key, "r");
-        if (SHUJSN.file == NULL)
-        {
-            SHUJSN.lastResult = SHUResult_ErrNotFound;
-            return (SHUJson){0};
-        }
     }
 
     // todo parse with helper functions
     // todo close root object
+
+    SHUJSN.stack.depth++;
 
     SHUJSN.lastResult = SHUResult_Ok;
 }
 
 void SHU_JsonObjectDestroy(SHUJson object)
 {
+    if (SHUJSN.stack.depth == 1)
+    {
+        SHUI_JsonFree();
+    }
+
+    SHUJSN.stack.depth--;
+
     SHUJSN.lastResult = SHUResult_Ok;
 }
 

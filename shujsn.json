@@ -51,6 +51,16 @@
       "name": "second"
     }
   ],
+  "arrayOfMixedObjects": [
+    {
+      "id": 1,
+      "test": 31.0
+    },
+    {
+      "id": 2,
+      "name": "second"
+    }
+  ],
   "arrayOfArrays": [
     [
       1,
