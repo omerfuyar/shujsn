@@ -210,6 +210,7 @@ SHUJsonArrayDynamic SHU_JsonArrayDynamic(const char *key);
 static struct
 {
     SHUResult lastResult;
+    char *stringArena;
     SHUJson *nodes;
     usz nodeCount;
 
@@ -428,12 +429,34 @@ static SHUResult SHUI_JsonParseFile(const char *fileName)
     ((char *)jsonFileString.data)[jsonFileString.size] = '\0';
 
     // todo parse all objects
+    // pass 1
+    usz stringArenaSize = 0;
+    usz stackCapacity = 0;
+    usz nodeCount = 0;
+
+    for (usz i = 0; i < jsonFileString.size; i++)
+    {
+        char character = ((char *)jsonFileString.data)[i];
+        switch (character)
+        {
+        case '{':
+            break;
+        default:
+            break;
+        }
+    }
+
+    // pass 2
 
     free(jsonFileString.data);
 }
 
 static void SHUI_JsonFree()
 {
+    free(SHUJSN.stringArena);
+    free(SHUJSN.nodes);
+    free(SHUJSN.stack.data);
+    memset(&SHUJSN, 0x00, sizeof(SHUJSN));
 }
 
 #pragma endregion Internals
@@ -449,14 +472,20 @@ SHUJson SHU_JsonObject(const char *key)
 
     if (SHUJSN.stack.depth == 0) // root object
     {
+        SHUResult result = SHUI_JsonParseFile(key);
+        if (result)
+        {
+            SHUJSN.lastResult = result;
+            return (SHUJson){.type = SHUJsonType_Invalid};
+        }
     }
 
-    // todo parse with helper functions
-    // todo close root object
+    // todo get object according to stack
 
     SHUJSN.stack.depth++;
 
     SHUJSN.lastResult = SHUResult_Ok;
+    // return
 }
 
 void SHU_JsonObjectDestroy(SHUJson object)
