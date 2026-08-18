@@ -474,7 +474,7 @@ SHUResult SHU_JsonGetLastResult(void)
 
 SHUJson SHU_JsonObject(const char *key)
 {
-    SHU_CheckPanicNullPointer(key);
+    SHU_AssertNullPointer(key);
 
     if (SHUJSN.stack.depth == 0) // root object
     {
@@ -508,37 +508,37 @@ void SHU_JsonObjectDestroy(SHUJson object)
 
 SHUSliceView SHU_JsonString(const char *key)
 {
-    SHU_CheckPanicNullPointer(key);
+    SHU_AssertNullPointer(key);
     SHUJSN.lastResult = SHUResult_Ok;
 }
 
 SHUC_JSON_INTEGER_TYPE SHU_JsonInteger(const char *key)
 {
-    SHU_CheckPanicNullPointer(key);
+    SHU_AssertNullPointer(key);
     SHUJSN.lastResult = SHUResult_Ok;
 }
 
 SHUC_JSON_DECIMAL_TYPE SHU_JsonDecimal(const char *key)
 {
-    SHU_CheckPanicNullPointer(key);
+    SHU_AssertNullPointer(key);
     SHUJSN.lastResult = SHUResult_Ok;
 }
 
 SHUC_JSON_BOOLEAN_TYPE SHU_JsonBoolean(const char *key)
 {
-    SHU_CheckPanicNullPointer(key);
+    SHU_AssertNullPointer(key);
     SHUJSN.lastResult = SHUResult_Ok;
 }
 
 SHUJsonArrayStatic SHU_JsonArrayStatic(const char *key)
 {
-    SHU_CheckPanicNullPointer(key);
+    SHU_AssertNullPointer(key);
     SHUJSN.lastResult = SHUResult_Ok;
 }
 
 SHUJsonArrayDynamic SHU_JsonArrayDynamic(const char *key)
 {
-    SHU_CheckPanicNullPointer(key);
+    SHU_AssertNullPointer(key);
     SHUJSN.lastResult = SHUResult_Ok;
 }
 
