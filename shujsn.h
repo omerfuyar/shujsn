@@ -43,6 +43,7 @@
 
 #pragma region Declarations
 
+/// @brief Type tag of a SHUJson value, telling which member of its `value` union is active.
 typedef enum SHUJsonType
 {
     SHUJsonType_Invalid,
@@ -56,12 +57,14 @@ typedef enum SHUJsonType
     SHUJsonType_Null,
 } SHUJsonType;
 
+/// @brief A JSON array whose elements all share the same SHUJsonType.
 typedef struct SHUJsonArrayStatic
 {
     SHUSlice data; // todo make view
     SHUJsonType type;
 } SHUJsonArrayStatic;
 
+/// @brief A JSON array whose elements may each have a different SHUJsonType.
 typedef struct SHUJsonArrayDynamic
 {
     struct
@@ -72,6 +75,7 @@ typedef struct SHUJsonArrayDynamic
     usz count;
 } SHUJsonArrayDynamic;
 
+/// @brief A single parsed JSON value (object member, array element, or root). See SHUJsonType for which `value` union member is active.
 typedef struct SHUJson
 {
     // struct SHUJson *parent;
@@ -345,7 +349,7 @@ number:
         }
     } // fallback to integer
 integer:
-    SHUC_JSON_INTEGER_TYPE returnInt = (SHUC_JSON_INTEGER_TYPE)strtoll(numberBuffer, *strEnd, 10);
+    SHUC_JSON_INTEGER_TYPE returnInt = (SHUC_JSON_INTEGER_TYPE)strtoll(numberBuffer, &strEnd, 10);
 
     if (errno != 0)
     {
@@ -362,7 +366,7 @@ integer:
     return SHUResult_Ok;
 
 decimal:
-    SHUC_JSON_DECIMAL_TYPE returnDcm = (SHUC_JSON_DECIMAL_TYPE)strtod(numberBuffer, *strEnd);
+    SHUC_JSON_DECIMAL_TYPE returnDcm = (SHUC_JSON_DECIMAL_TYPE)strtod(numberBuffer, &strEnd);
 
     if (errno != 0)
     {
@@ -407,12 +411,13 @@ static SHUResult SHUI_JsonParseFile(const char *fileName)
 
     SHUSlice jsonFileString = cs0;
 
-    jsonFileString.size = ftell(jsonFile);
-    if (jsonFileString.size < 0)
+    i64 fileSize = ftell(jsonFile);
+    if (fileSize < 0)
     {
         fclose(jsonFile);
         return SHUResult_ErrInternal;
     }
+    jsonFileString.size = (usz)fileSize;
 
     rewind(jsonFile);
 
@@ -423,7 +428,7 @@ static SHUResult SHUI_JsonParseFile(const char *fileName)
         return SHUResult_ErrAllocation;
     }
 
-    size_t bytesRead = fread(jsonFileString.data, 1, jsonFileString.size, jsonFile);
+    usz bytesRead = fread(jsonFileString.data, 1, jsonFileString.size, jsonFile);
     if (bytesRead < jsonFileString.size && ferror(jsonFile))
     {
         free(jsonFileString.data);
@@ -455,6 +460,8 @@ static SHUResult SHUI_JsonParseFile(const char *fileName)
     // pass 2
 
     free(jsonFileString.data);
+
+    return SHUResult_Ok;
 }
 
 static void SHUI_JsonFree()
@@ -491,7 +498,7 @@ SHUJson SHU_JsonObject(const char *key)
     SHUJSN.stack.depth++;
 
     SHUJSN.lastResult = SHUResult_Ok;
-    // return
+    return (SHUJson){.type = SHUJsonType_Invalid};
 }
 
 void SHU_JsonObjectDestroy(SHUJson object)
@@ -509,37 +516,49 @@ void SHU_JsonObjectDestroy(SHUJson object)
 SHUSliceView SHU_JsonString(const char *key)
 {
     SHU_AssertNullPointer(key);
+    // todo look up key in current object
     SHUJSN.lastResult = SHUResult_Ok;
+    return csv(cs0);
 }
 
 SHUC_JSON_INTEGER_TYPE SHU_JsonInteger(const char *key)
 {
     SHU_AssertNullPointer(key);
+    // todo look up key in current object
     SHUJSN.lastResult = SHUResult_Ok;
+    return 0;
 }
 
 SHUC_JSON_DECIMAL_TYPE SHU_JsonDecimal(const char *key)
 {
     SHU_AssertNullPointer(key);
+    // todo look up key in current object
     SHUJSN.lastResult = SHUResult_Ok;
+    return 0;
 }
 
 SHUC_JSON_BOOLEAN_TYPE SHU_JsonBoolean(const char *key)
 {
     SHU_AssertNullPointer(key);
+    // todo look up key in current object
     SHUJSN.lastResult = SHUResult_Ok;
+    return false;
 }
 
 SHUJsonArrayStatic SHU_JsonArrayStatic(const char *key)
 {
     SHU_AssertNullPointer(key);
+    // todo look up key in current object
     SHUJSN.lastResult = SHUResult_Ok;
+    return (SHUJsonArrayStatic){0};
 }
 
 SHUJsonArrayDynamic SHU_JsonArrayDynamic(const char *key)
 {
     SHU_AssertNullPointer(key);
+    // todo look up key in current object
     SHUJSN.lastResult = SHUResult_Ok;
+    return (SHUJsonArrayDynamic){0};
 }
 
 #endif // SHU_IMPLEMENTATION
