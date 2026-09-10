@@ -209,10 +209,6 @@ SHUJsonArrayDynamic SHU_JsonArrayDynamic(const char *key);
 
 #ifdef SHU_IMPLEMENTATION
 
-#ifdef _WIN32
-#else
-#endif
-
 #include <errno.h>
 
 #pragma region Internals
